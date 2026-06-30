@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SceneScroll.js Demo - Portfolio</title>
+    <link rel="stylesheet" href="../../dist/scenescroll.css">
+    <style>
+      body { margin: 0; background: #071018; }
+      .demo-nav {
+        position: fixed;
+        top: 18px;
+        left: 20px;
+        z-index: 40;
+        font: 700 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        letter-spacing: 0;
+      }
+      .demo-nav a { color: #fff; text-decoration: none; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.7); }
+      .demo-nav a:hover { text-decoration: underline; }
+      #scene { --ss-progress-color: #8dd7ff; --ss-overlay-color: rgba(4, 10, 20, 0.28); }
+    </style>
+  </head>
+  <body>
+    <nav class="demo-nav" aria-label="Back"><a href="../../">SceneScroll.js</a></nav>
+    <main id="scene"></main>
+    <script src="../../dist/scenescroll.js"></script>
+    <script>
+      SceneScroll.create("#scene", {
+        heightPerScene: 116,
+        transition: "fade",
+        textEffect: "slide",
+        progressBar: true,
+        sceneNumber: true,
+        keyboard: true,
+        scenes: [
+          {
+            label: "01 Concept",
+            title: "A small idea gets a room",
+            text: "曖昧な着想を、観察できる形に置き直す。",
+            background: "../../assets/images/portfolio-idea.svg",
+            backgroundAlt: "机の上の企画メモ",
+            transition: "fade",
+            align: "left"
+          },
+          {
+            label: "02 Design",
+            title: "Structure before surface",
+            text: "最初に体験の骨格を決め、あとから見た目を育てる。",
+            background: "../../assets/images/portfolio-design.svg",
+            backgroundAlt: "デザインボード",
+            transition: "slide",
+            textEffect: "fade"
+          },
+          {
+            label: "03 Build",
+            title: "The interface starts moving",
+            text: "コードが入ると、静止していた構成が反応を持ちはじめる。",
+            background: "../../assets/images/portfolio-code.svg",
+            backgroundAlt: "コードエディタ",
+            transition: "parallax",
+            parallax: {
+              backgroundSpeed: 0.35,
+              contentSpeed: 0.9
+            },
+            align: "right"
+          },
+          {
+            label: "04 Iterate",
+            title: "Compare, adjust, repeat",
+            text: "小さな違和感をつぶすほど、体験は静かに強くなる。",
+            background: "../../assets/images/portfolio-iteration.svg",
+            backgroundAlt: "改善のパネル",
+            transition: "camera",
+            camera: {
+              from: { scale: 1.04, x: 60, y: 0 },
+              to: { scale: 1.18, x: -60, y: 20 }
+            }
+          },
+          {
+            label: "05 Launch",
+            title: "Ready for the gallery",
+            text: "完成品は説明より先に、動きと密度で伝わる。",
+            background: "../../assets/images/portfolio-launch.svg",
+            backgroundAlt: "ローンチ展示",
+            transition: "zoom",
+            textEffect: "blur"
+          }
+        ]
+      });
+    </script>
+  </body>
+</html>

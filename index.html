@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SceneScroll.js</title>
+    <link rel="stylesheet" href="./dist/scenescroll.css">
+    <style>
+      body {
+        margin: 0;
+        background: #050505;
+      }
+
+      .site-nav {
+        position: fixed;
+        top: 18px;
+        left: 20px;
+        z-index: 40;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .site-nav a {
+        color: #ffffff;
+        text-decoration: none;
+        text-shadow: 0 2px 24px rgba(0, 0, 0, 0.7);
+      }
+
+      .site-nav a:hover {
+        text-decoration: underline;
+      }
+
+      #scene {
+        --ss-progress-color: #f9e27d;
+        --ss-overlay-color: rgba(0, 0, 0, 0.42);
+      }
+
+      @media (max-width: 720px) {
+        .site-nav {
+          top: 14px;
+          left: 16px;
+          right: 88px;
+          gap: 10px;
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="site-nav" aria-label="SceneScroll demos">
+      <a href="./demos/movie-lp/">Movie</a>
+      <a href="./demos/portfolio/">Portfolio</a>
+      <a href="./demos/travel/">Travel</a>
+      <a href="./demos/horizontal-story/">Story</a>
+      <a href="./README.md">README</a>
+    </nav>
+
+    <main id="scene"></main>
+
+    <script src="./dist/scenescroll.js"></script>
+    <script>
+      SceneScroll.create("#scene", {
+        heightPerScene: 118,
+        progressBar: true,
+        sceneNumber: true,
+        keyboard: true,
+        mobile: {
+          reduceCameraMotion: true,
+          reduceParallax: true,
+          transition: "fade",
+          textEffect: "fade"
+        },
+        scenes: [
+          {
+            label: "SceneScroll.js",
+            title: "Scroll-based Cinematic Web Library",
+            text: "スクロールを、ただの移動ではなく、場面転換に変えるVanilla JavaScriptライブラリ。",
+            background: "./assets/images/movie-title.svg",
+            backgroundAlt: "夜の街と月",
+            transition: "fade",
+            textEffect: "slide",
+            align: "left"
+          },
+          {
+            label: "Timeline",
+            title: "Scenes move with scroll",
+            text: "背景、テキスト、動画、進行度バー、シーン番号をシーン配列から自動生成します。",
+            background: "./assets/images/portfolio-design.svg",
+            backgroundAlt: "UIデザインのボード",
+            transition: "parallax",
+            textEffect: "fade"
+          },
+          {
+            label: "Camera",
+            title: "Zoom, pan, and drift",
+            text: "camera設定で、一枚絵にも映像のような寄り・引き・パンを与えられます。",
+            background: "./assets/images/story-light.svg",
+            backgroundAlt: "森の中の光",
+            transition: "camera",
+            textEffect: "scale",
+            align: "right",
+            camera: {
+              from: { scale: 1, x: 0, y: 0 },
+              to: { scale: 1.28, x: -90, y: 35 }
+            }
+          },
+          {
+            label: "Demos",
+            title: "Four cinematic examples",
+            text: "映画LP、作品紹介、旅行記、横スクロールWeb絵本のデモを同梱しています。",
+            background: "./assets/images/portfolio-launch.svg",
+            backgroundAlt: "展示会場のようなローンチシーン",
+            transition: "zoom",
+            textEffect: "blur"
+          }
+        ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="movie-protagonist">
+  <defs>
+    <linearGradient id="sky-movie-protagonist" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a1020"/>
+      <stop offset="0.54" stop-color="#3b1d3d"/>
+      <stop offset="1" stop-color="#081118"/>
+    </linearGradient>
+    <radialGradient id="glow-movie-protagonist" cx="50%" cy="38%" r="48%">
+      <stop offset="0" stop-color="#ffc0a6" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#ffc0a6" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft-movie-protagonist" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky-movie-protagonist)"/>
+  <rect width="1600" height="900" fill="url(#glow-movie-protagonist)"/>
+  
+  <ellipse cx="820" cy="730" rx="460" ry="80" fill="#05070a" opacity="0.6"/>
+  <path d="M840 270 C780 275 740 330 748 390 C752 430 782 458 805 470 L772 720 L915 720 L885 470 C925 450 945 410 938 368 C930 312 895 270 840 270 Z" fill="#0a0c12"/>
+  <path d="M670 720 C720 610 760 530 810 480 L882 480 C940 545 982 620 1020 720 Z" fill="#111827"/>
+  <path d="M520 270 C680 310 910 318 1080 230" stroke="#fbbf77" stroke-width="8" opacity="0.36" fill="none"/>
+</svg>

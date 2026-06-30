@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="movie-final">
+  <defs>
+    <linearGradient id="sky-movie-final" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#05070a"/>
+      <stop offset="0.54" stop-color="#102235"/>
+      <stop offset="1" stop-color="#1d1208"/>
+    </linearGradient>
+    <radialGradient id="glow-movie-final" cx="50%" cy="38%" r="48%">
+      <stop offset="0" stop-color="#fff2b7" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#fff2b7" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft-movie-final" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky-movie-final)"/>
+  <rect width="1600" height="900" fill="url(#glow-movie-final)"/>
+  
+  <path d="M740 0 L900 0 L1030 900 L610 900 Z" fill="#fff0a3" opacity="0.32" filter="url(#soft-movie-final)"/>
+  <path d="M0 690 C250 620 360 700 560 640 C760 578 920 650 1120 590 C1350 520 1480 580 1600 540 L1600 900 L0 900 Z" fill="#05070a"/>
+  <circle cx="820" cy="590" r="52" fill="#f8fafc" opacity="0.74"/>
+  <path d="M780 652 L860 652 L910 790 L730 790 Z" fill="#0a0c12"/>
+</svg>

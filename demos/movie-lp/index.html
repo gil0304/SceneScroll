@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SceneScroll.js Demo - Movie LP</title>
+    <link rel="stylesheet" href="../../dist/scenescroll.css">
+    <style>
+      body { margin: 0; background: #050505; }
+      .demo-nav {
+        position: fixed;
+        top: 18px;
+        left: 20px;
+        z-index: 40;
+        font: 700 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        letter-spacing: 0;
+      }
+      .demo-nav a { color: #fff; text-decoration: none; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.7); }
+      .demo-nav a:hover { text-decoration: underline; }
+      #scene { --ss-progress-color: #ffcf86; --ss-overlay-color: rgba(0, 0, 0, 0.46); }
+    </style>
+  </head>
+  <body>
+    <nav class="demo-nav" aria-label="Back"><a href="../../">SceneScroll.js</a></nav>
+    <main id="scene"></main>
+    <script src="../../dist/scenescroll.js"></script>
+    <script>
+      SceneScroll.create("#scene", {
+        heightPerScene: 128,
+        progressBar: true,
+        sceneNumber: true,
+        keyboard: true,
+        autoPlayVideo: true,
+        scenes: [
+          {
+            label: "A film that never existed",
+            title: "Midnight Signal",
+            text: "夜の街に、存在しないはずの信号が灯る。",
+            backgroundVideo: "../../assets/videos/noir-pulse.mp4",
+            fallbackBackground: "../../assets/images/movie-title.svg",
+            backgroundAlt: "夜の街と月",
+            transition: "fade",
+            textEffect: "slide",
+            align: "left"
+          },
+          {
+            label: "Scene 02",
+            title: "The witness",
+            text: "主人公は、誰も覚えていない記憶を追い始める。",
+            background: "../../assets/images/movie-protagonist.svg",
+            backgroundAlt: "光を背にした人物",
+            transition: "zoom",
+            textEffect: "fade",
+            align: "right"
+          },
+          {
+            label: "Scene 03",
+            title: "The break",
+            text: "街の時間が割れ、過去と未来が同じ夜に流れ込む。",
+            background: "../../assets/images/movie-incident.svg",
+            backgroundAlt: "赤い亀裂が走る抽象的な街",
+            transition: "cut",
+            textEffect: "blur"
+          },
+          {
+            label: "Scene 04",
+            title: "Everything falls",
+            text: "積み上げてきた世界が、音もなく崩れていく。",
+            background: "../../assets/images/movie-collapse.svg",
+            backgroundAlt: "崩れていく都市",
+            transition: "camera",
+            textEffect: "scale",
+            camera: {
+              from: { scale: 1.02, x: 0, y: 0 },
+              to: { scale: 1.38, x: -120, y: 60 }
+            }
+          },
+          {
+            label: "Final cut",
+            title: "Only one light remains",
+            text: "最後の場面だけが、スクロールの終わりで静かに残る。",
+            background: "../../assets/images/movie-final.svg",
+            backgroundAlt: "暗闇に差す一本の光",
+            transition: "fade",
+            textEffect: "slide"
+          }
+        ]
+      });
+    </script>
+  </body>
+</html>

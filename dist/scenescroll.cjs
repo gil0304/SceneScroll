@@ -1,0 +1,1119 @@
+/*!
+ * SceneScroll.js v0.1.0
+ * Scroll-based Cinematic Web Library
+ * MIT License
+ */
+(function (global) {
+  "use strict";
+
+function clamp(value, min = 0, max = 1) {
+  return Math.min(Math.max(Number(value) || 0, min), max);
+}
+
+function lerp(from, to, progress) {
+  return from + (to - from) * progress;
+}
+
+function detectMobile(breakpoint = 768) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const coarsePointer = window.matchMedia
+    ? window.matchMedia("(pointer: coarse)").matches
+    : false;
+
+  return window.innerWidth <= breakpoint || coarsePointer;
+}
+
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && window.matchMedia
+    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    : false;
+}
+
+function createElement(tag, options = {}) {
+  const element = document.createElement(tag);
+  const {
+    className,
+    text,
+    html,
+    attrs,
+    dataset,
+    style,
+    children
+  } = options;
+
+  if (className) {
+    element.className = className;
+  }
+
+  if (text !== undefined && text !== null) {
+    element.textContent = text;
+  }
+
+  if (html !== undefined && html !== null) {
+    element.innerHTML = html;
+  }
+
+  if (attrs) {
+    Object.entries(attrs).forEach(([key, value]) => {
+      if (value === false || value === undefined || value === null) {
+        return;
+      }
+
+      if (value === true) {
+        element.setAttribute(key, "");
+        return;
+      }
+
+      element.setAttribute(key, String(value));
+    });
+  }
+
+  if (dataset) {
+    Object.entries(dataset).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        element.dataset[key] = String(value);
+      }
+    });
+  }
+
+  if (style) {
+    Object.assign(element.style, style);
+  }
+
+  if (children) {
+    children.filter(Boolean).forEach((child) => element.appendChild(child));
+  }
+
+  return element;
+}
+
+
+const DEFAULT_MOBILE = {
+  breakpoint: 768,
+  disableCamera: false,
+  reduceCameraMotion: true,
+  disableVideo: false,
+  reduceParallax: true,
+  fallbackBackground: null,
+  transition: null,
+  textEffect: null
+};
+
+class MobileOptimizer {
+  constructor(options) {
+    this.options = options;
+    this.mobileOptions = {
+      ...DEFAULT_MOBILE,
+      ...(options.mobile || {})
+    };
+    this.isMobile = false;
+    this.isReducedMotion = false;
+    this.refresh();
+  }
+
+  refresh() {
+    this.isMobile = Boolean(
+      this.options.mobileOptimize &&
+        detectMobile(this.mobileOptions.breakpoint)
+    );
+
+    this.isReducedMotion = Boolean(
+      this.options.reducedMotion &&
+        prefersReducedMotion()
+    );
+
+    return {
+      isMobile: this.isMobile,
+      isReducedMotion: this.isReducedMotion
+    };
+  }
+
+  getSceneSettings(scene) {
+    const mobile = this.isMobile ? { ...this.mobileOptions, ...(scene.mobile || {}) } : {};
+
+    return {
+      transition: mobile.transition || scene.transition || this.options.transition,
+      textEffect: mobile.textEffect || scene.textEffect || this.options.textEffect,
+      disableCamera: Boolean(
+        this.isReducedMotion ||
+          mobile.disableCamera ||
+          (this.isMobile && scene.mobile && scene.mobile.disableCamera)
+      ),
+      reduceCameraMotion: Boolean(this.isMobile && mobile.reduceCameraMotion),
+      disableVideo: Boolean(
+        this.isReducedMotion ||
+          (this.isMobile && mobile.disableVideo)
+      ),
+      fallbackBackground:
+        (this.isMobile && (mobile.fallbackBackground || scene.mobile?.fallbackBackground)) ||
+        scene.fallbackBackground ||
+        scene.background ||
+        null,
+      reduceParallax: Boolean(this.isReducedMotion || (this.isMobile && mobile.reduceParallax)),
+      isMobile: this.isMobile,
+      isReducedMotion: this.isReducedMotion
+    };
+  }
+}
+
+
+const CAMERA_DEFAULT = {
+  from: { scale: 1, x: 0, y: 0 },
+  to: { scale: 1, x: 0, y: 0 }
+};
+
+const PARALLAX_DEFAULT = {
+  backgroundSpeed: 0.4,
+  contentSpeed: 1
+};
+
+function padSceneNumber(number) {
+  return String(number).padStart(2, "0");
+}
+
+function normalizeAudio(audio) {
+  if (!audio) {
+    return null;
+  }
+
+  if (typeof audio === "string") {
+    return {
+      src: audio,
+      loop: true,
+      volume: 0.8,
+      fade: true
+    };
+  }
+
+  return {
+    loop: true,
+    volume: 0.8,
+    fade: true,
+    ...audio
+  };
+}
+
+class Scene {
+  constructor(scene, index, total, context) {
+    this.data = scene;
+    this.index = index;
+    this.total = total;
+    this.context = context;
+    this.media = {
+      videos: [],
+      backgroundVideos: [],
+      backgroundFallbacks: [],
+      audio: normalizeAudio(scene.audio)
+    };
+
+    this.el = this.create();
+  }
+
+  create() {
+    const settings = this.context.mobileOptimizer.getSceneSettings(this.data);
+    const transition = settings.transition;
+    const textEffect = settings.isReducedMotion ? "fade" : settings.textEffect;
+    const align = this.data.align || "center";
+    const theme = this.data.theme || "dark";
+    const sceneId = this.data.id || `scene-${this.index + 1}`;
+
+    const section = createElement("section", {
+      className: [
+        "ss-scene",
+        `ss-scene-${this.index}`,
+        `ss-transition-${transition}`,
+        `ss-text-${textEffect}`,
+        `ss-align-${align}`,
+        `ss-theme-${theme}`
+      ].join(" "),
+      attrs: {
+        id: sceneId,
+        "aria-label": this.data.label || this.data.title || `Scene ${this.index + 1}`,
+        "aria-hidden": "true"
+      },
+      dataset: {
+        sceneIndex: this.index,
+        transition,
+        textEffect
+      }
+    });
+
+    if (this.data.backgroundColor || this.data.type === "color") {
+      section.style.backgroundColor = this.data.backgroundColor || "var(--ss-bg-color)";
+    }
+
+    section.appendChild(this.createBackground(settings));
+
+    const media = this.createMainMedia(settings);
+    if (media) {
+      section.appendChild(media);
+    }
+
+    section.appendChild(this.createContent());
+
+    return section;
+  }
+
+  createBackground(settings) {
+    const bg = createElement("div", { className: "ss-bg" });
+    const overlay = createElement("div", {
+      className: "ss-overlay",
+      attrs: { "aria-hidden": "true" }
+    });
+
+    const fallback = settings.fallbackBackground || this.data.fallbackBackground;
+    const showVideo = this.data.backgroundVideo && !settings.disableVideo;
+
+    if (showVideo) {
+      const video = createElement("video", {
+        className: "ss-bg-video",
+        attrs: {
+          src: this.data.backgroundVideo,
+          muted: true,
+          autoplay: this.context.options.autoPlayVideo,
+          loop: this.context.options.loopVideo,
+          playsinline: true,
+          preload: "metadata",
+          poster: fallback || undefined
+        }
+      });
+
+      this.media.videos.push(video);
+      this.media.backgroundVideos.push(video);
+
+      if (fallback) {
+        const image = this.createBackgroundImage(fallback, true);
+        image.classList.add("ss-video-fallback");
+        this.media.backgroundFallbacks.push(image);
+        bg.appendChild(image);
+
+        video.addEventListener("error", () => {
+          video.dataset.failed = "true";
+          video.hidden = true;
+          image.hidden = false;
+        });
+      }
+
+      bg.appendChild(video);
+    } else if (fallback || this.data.background) {
+      bg.appendChild(this.createBackgroundImage(fallback || this.data.background, false));
+    }
+
+    bg.appendChild(overlay);
+    return bg;
+  }
+
+  createBackgroundImage(src, hidden) {
+    return createElement("img", {
+      className: "ss-bg-image",
+      attrs: {
+        src,
+        alt: this.data.backgroundAlt || "",
+        loading: this.index === 0 ? "eager" : "lazy",
+        hidden
+      }
+    });
+  }
+
+  createMainMedia(settings) {
+    const hasImage = Boolean(this.data.image);
+    const hasVideo = Boolean(this.data.video || this.data.type === "video");
+
+    if (!hasImage && !hasVideo) {
+      return null;
+    }
+
+    const wrap = createElement("div", { className: "ss-media" });
+
+    if (hasImage) {
+      wrap.appendChild(
+        createElement("img", {
+          className: "ss-image",
+          attrs: {
+            src: this.data.image,
+            alt: this.data.imageAlt || this.data.title || "",
+            loading: this.index === 0 ? "eager" : "lazy"
+          }
+        })
+      );
+    }
+
+    const videoSrc = this.data.video || (this.data.type === "video" ? this.data.backgroundVideo : null);
+    if (videoSrc && !settings.disableVideo) {
+      const video = createElement("video", {
+        className: "ss-video",
+        attrs: {
+          src: videoSrc,
+          playsinline: true,
+          preload: "metadata",
+          controls: this.data.controls !== false,
+          loop: this.data.loopVideo || false,
+          muted: this.data.muted !== false
+        }
+      });
+      this.media.videos.push(video);
+      wrap.appendChild(video);
+    }
+
+    return wrap;
+  }
+
+  createContent() {
+    const children = [];
+
+    if (this.data.label) {
+      children.push(
+        createElement("p", {
+          className: "ss-label",
+          text: this.data.label
+        })
+      );
+    }
+
+    if (this.data.title) {
+      children.push(
+        createElement("h1", {
+          className: "ss-title",
+          text: this.data.title
+        })
+      );
+    }
+
+    if (this.data.text) {
+      const text = createElement("p", {
+        className: "ss-text",
+        text: this.data.text
+      });
+      text.style.setProperty("--ss-type-characters", String(this.data.text.length));
+      children.push(text);
+    }
+
+    if (this.data.link && this.data.link.href) {
+      children.push(
+        createElement("a", {
+          className: "ss-link",
+          text: this.data.link.label || "View more",
+          attrs: {
+            href: this.data.link.href,
+            target: this.data.link.target || undefined,
+            rel: this.data.link.target === "_blank" ? "noreferrer" : undefined
+          }
+        })
+      );
+    }
+
+    return createElement("div", {
+      className: "ss-content",
+      children
+    });
+  }
+
+  refreshClasses() {
+    const settings = this.context.mobileOptimizer.getSceneSettings(this.data);
+    const transition = settings.transition;
+    const textEffect = settings.isReducedMotion ? "fade" : settings.textEffect;
+
+    Array.from(this.el.classList)
+      .filter((name) => name.startsWith("ss-transition-") || name.startsWith("ss-text-"))
+      .forEach((name) => this.el.classList.remove(name));
+
+    this.el.classList.add(`ss-transition-${transition}`, `ss-text-${textEffect}`);
+    this.el.dataset.transition = transition;
+    this.el.dataset.textEffect = textEffect;
+    this.refreshMediaVisibility(settings);
+  }
+
+  refreshMediaVisibility(settings) {
+    this.media.backgroundVideos.forEach((video) => {
+      video.hidden = settings.disableVideo || video.dataset.failed === "true";
+    });
+
+    this.media.backgroundFallbacks.forEach((image) => {
+      const videoFailed = this.media.backgroundVideos.some((video) => video.dataset.failed === "true");
+      image.hidden = !(settings.disableVideo || videoFailed);
+    });
+  }
+
+  setState(currentIndex) {
+    const isActive = this.index === currentIndex;
+    this.el.classList.toggle("active", isActive);
+    this.el.classList.toggle("prev", this.index < currentIndex);
+    this.el.classList.toggle("next", this.index > currentIndex);
+    this.el.setAttribute("aria-hidden", isActive ? "false" : "true");
+  }
+
+  update(progress, currentIndex) {
+    const settings = this.context.mobileOptimizer.getSceneSettings(this.data);
+    const sceneProgress = this.index === currentIndex ? clamp(progress) : this.index < currentIndex ? 1 : 0;
+
+    this.refreshMediaVisibility(settings);
+    this.el.style.setProperty("--ss-scene-progress-local", sceneProgress.toFixed(4));
+    this.applyCamera(sceneProgress, settings);
+    this.applyParallax(sceneProgress, settings);
+  }
+
+  applyCamera(progress, settings) {
+    const isCamera = settings.transition === "camera";
+    const hasCamera = Boolean(this.data.camera);
+
+    if (!hasCamera || !isCamera || settings.disableCamera) {
+      this.el.style.setProperty("--ss-camera-scale", "1");
+      this.el.style.setProperty("--ss-camera-x", "0px");
+      this.el.style.setProperty("--ss-camera-y", "0px");
+      return;
+    }
+
+    const camera = {
+      from: { ...CAMERA_DEFAULT.from, ...(this.data.camera.from || {}) },
+      to: { ...CAMERA_DEFAULT.to, ...(this.data.camera.to || {}) }
+    };
+
+    const reduction = settings.reduceCameraMotion ? 0.45 : 1;
+    const fromScale = camera.from.scale;
+    const toScale = fromScale + (camera.to.scale - fromScale) * reduction;
+    const fromX = camera.from.x;
+    const toX = fromX + (camera.to.x - fromX) * reduction;
+    const fromY = camera.from.y;
+    const toY = fromY + (camera.to.y - fromY) * reduction;
+
+    this.el.style.setProperty("--ss-camera-scale", lerp(fromScale, toScale, progress).toFixed(4));
+    this.el.style.setProperty("--ss-camera-x", `${lerp(fromX, toX, progress).toFixed(2)}px`);
+    this.el.style.setProperty("--ss-camera-y", `${lerp(fromY, toY, progress).toFixed(2)}px`);
+  }
+
+  applyParallax(progress, settings) {
+    const parallax = {
+      ...PARALLAX_DEFAULT,
+      ...(this.data.parallax || {})
+    };
+    const amount = settings.reduceParallax ? 24 : 72;
+    const centered = progress - 0.5;
+    const backgroundY = centered * amount * parallax.backgroundSpeed * -1;
+    const contentY = centered * amount * parallax.contentSpeed;
+
+    this.el.style.setProperty("--ss-bg-parallax-y", `${backgroundY.toFixed(2)}px`);
+    this.el.style.setProperty("--ss-content-parallax-y", `${contentY.toFixed(2)}px`);
+  }
+
+  getLabel() {
+    return this.data.label || `Scene ${padSceneNumber(this.index + 1)}`;
+  }
+}
+
+class MediaManager {
+  constructor(instance) {
+    this.instance = instance;
+    this.scenes = instance.scenes;
+    this.options = instance.options;
+    this.hasUserInteracted = false;
+    this.audioElements = new Map();
+    this.fadeTimers = new Map();
+
+    this.handleFirstInteraction = this.handleFirstInteraction.bind(this);
+    this.bindInteractionListeners();
+    this.createAudioElements();
+  }
+
+  bindInteractionListeners() {
+    ["pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+      window.addEventListener(eventName, this.handleFirstInteraction, {
+        once: true,
+        passive: true
+      });
+    });
+  }
+
+  removeInteractionListeners() {
+    ["pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+      window.removeEventListener(eventName, this.handleFirstInteraction);
+    });
+  }
+
+  handleFirstInteraction() {
+    this.hasUserInteracted = true;
+    this.sync(this.instance.currentIndex);
+  }
+
+  createAudioElements() {
+    this.scenes.forEach((scene) => {
+      const config = scene.media.audio;
+      if (!config || !config.src) {
+        return;
+      }
+
+      const audio = new Audio(config.src);
+      audio.loop = config.loop !== false;
+      audio.volume = config.fade ? 0 : config.volume;
+      audio.preload = "metadata";
+      this.audioElements.set(scene.index, { audio, config });
+    });
+  }
+
+  sync(activeIndex) {
+    this.scenes.forEach((scene) => {
+      const isActive = scene.index === activeIndex;
+      this.syncVideos(scene, isActive);
+      this.syncAudio(scene, isActive);
+    });
+  }
+
+  syncVideos(scene, isActive) {
+    const settings = this.instance.mobileOptimizer.getSceneSettings(scene.data);
+    scene.media.videos.forEach((video) => {
+      if (!isActive || !this.options.autoPlayVideo || settings.disableVideo) {
+        video.pause();
+        return;
+      }
+
+      const playAttempt = video.play();
+      if (playAttempt && typeof playAttempt.catch === "function") {
+        playAttempt.catch(() => {});
+      }
+    });
+  }
+
+  syncAudio(scene, isActive) {
+    const entry = this.audioElements.get(scene.index);
+    if (!entry) {
+      return;
+    }
+
+    const { audio, config } = entry;
+    if (!this.options.autoPlayAudio || !this.hasUserInteracted) {
+      audio.pause();
+      return;
+    }
+
+    if (isActive) {
+      if (config.fade) {
+        audio.volume = Math.min(audio.volume, config.volume);
+      } else {
+        audio.volume = config.volume;
+      }
+
+      const playAttempt = audio.play();
+      if (playAttempt && typeof playAttempt.catch === "function") {
+        playAttempt.catch(() => {});
+      }
+
+      if (config.fade) {
+        this.fadeAudio(scene.index, config.volume);
+      }
+    } else if (config.fade) {
+      this.fadeAudio(scene.index, 0, () => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  }
+
+  fadeAudio(index, targetVolume, afterFade) {
+    const entry = this.audioElements.get(index);
+    if (!entry) {
+      return;
+    }
+
+    const { audio } = entry;
+    const startVolume = audio.volume;
+    const steps = 16;
+    let currentStep = 0;
+
+    if (this.fadeTimers.has(index)) {
+      window.clearInterval(this.fadeTimers.get(index));
+    }
+
+    const timer = window.setInterval(() => {
+      currentStep += 1;
+      const progress = currentStep / steps;
+      audio.volume = startVolume + (targetVolume - startVolume) * progress;
+
+      if (currentStep >= steps) {
+        window.clearInterval(timer);
+        this.fadeTimers.delete(index);
+        audio.volume = targetVolume;
+        if (afterFade) {
+          afterFade();
+        }
+      }
+    }, 24);
+
+    this.fadeTimers.set(index, timer);
+  }
+
+  destroy() {
+    this.removeInteractionListeners();
+    this.fadeTimers.forEach((timer) => window.clearInterval(timer));
+    this.fadeTimers.clear();
+
+    this.scenes.forEach((scene) => {
+      scene.media.videos.forEach((video) => {
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+      });
+    });
+
+    this.audioElements.forEach(({ audio }) => {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    });
+    this.audioElements.clear();
+  }
+}
+
+
+class ScrollManager {
+  constructor(instance) {
+    this.instance = instance;
+    this.options = instance.options;
+    this.wrapper = instance.wrapper;
+    this.track = instance.track;
+    this.sceneCount = instance.scenes.length;
+    this.isTicking = false;
+    this.isPaused = false;
+    this.startY = 0;
+    this.totalScroll = 1;
+    this.totalDuration = 1;
+    this.sceneStarts = [];
+    this.sceneDurations = [];
+
+    this.handleScroll = this.handleScroll.bind(this);
+    this.handleResize = this.handleResize.bind(this);
+    this.handleKeydown = this.handleKeydown.bind(this);
+  }
+
+  start() {
+    this.refresh();
+    window.addEventListener("scroll", this.handleScroll, { passive: true });
+    window.addEventListener("resize", this.handleResize);
+
+    if (this.options.keyboard) {
+      window.addEventListener("keydown", this.handleKeydown);
+    }
+
+    this.requestUpdate();
+  }
+
+  stop() {
+    window.removeEventListener("scroll", this.handleScroll);
+    window.removeEventListener("resize", this.handleResize);
+    window.removeEventListener("keydown", this.handleKeydown);
+  }
+
+  handleScroll() {
+    if (!this.isPaused) {
+      this.requestUpdate();
+    }
+  }
+
+  handleResize() {
+    this.refresh();
+    this.requestUpdate();
+  }
+
+  handleKeydown(event) {
+    const nextKeys = ["ArrowDown", "ArrowRight", "PageDown"];
+    const prevKeys = ["ArrowUp", "ArrowLeft", "PageUp"];
+
+    if (nextKeys.includes(event.key)) {
+      event.preventDefault();
+      this.instance.next();
+    } else if (prevKeys.includes(event.key)) {
+      event.preventDefault();
+      this.instance.prev();
+    }
+  }
+
+  requestUpdate() {
+    if (this.isTicking) {
+      return;
+    }
+
+    this.isTicking = true;
+    window.requestAnimationFrame(() => {
+      this.isTicking = false;
+      if (!this.isPaused) {
+        this.instance.update(this.getState());
+      }
+    });
+  }
+
+  refresh() {
+    const rect = this.wrapper.getBoundingClientRect();
+    this.startY = rect.top + window.scrollY;
+    this.sceneDurations = this.instance.scenes.map((scene) => {
+      return Number(scene.data.duration || this.options.heightPerScene);
+    });
+    this.totalDuration = this.sceneDurations.reduce((total, duration) => total + duration, 0);
+
+    let cumulative = 0;
+    this.sceneStarts = this.sceneDurations.map((duration) => {
+      const start = cumulative;
+      cumulative += duration;
+      return start;
+    });
+
+    this.wrapper.style.height = `${Math.max(this.totalDuration, 100)}vh`;
+    this.totalScroll = Math.max(1, this.wrapper.offsetHeight - window.innerHeight);
+
+    if (this.track) {
+      this.track.style.width = `${this.sceneCount * 100}vw`;
+    }
+  }
+
+  getState() {
+    const currentScroll = clamp(window.scrollY - this.startY, 0, this.totalScroll);
+    const progress = clamp(currentScroll / this.totalScroll);
+    const virtualPosition = progress * this.totalDuration;
+    const currentIndex = this.getCurrentIndex(virtualPosition, progress);
+    const sceneStart = this.sceneStarts[currentIndex] || 0;
+    const duration = this.sceneDurations[currentIndex] || this.options.heightPerScene;
+    const sceneProgress = clamp((virtualPosition - sceneStart) / duration);
+
+    if (this.track) {
+      const x = progress * (this.sceneCount - 1) * -100;
+      this.track.style.transform = `translate3d(${x.toFixed(4)}vw, 0, 0)`;
+    }
+
+    return {
+      progress,
+      currentIndex,
+      sceneProgress
+    };
+  }
+
+  getCurrentIndex(virtualPosition, progress) {
+    if (progress >= 1) {
+      return this.sceneCount - 1;
+    }
+
+    for (let index = this.sceneCount - 1; index >= 0; index -= 1) {
+      if (virtualPosition >= this.sceneStarts[index]) {
+        return index;
+      }
+    }
+
+    return 0;
+  }
+
+  scrollToIndex(index, behavior) {
+    const safeIndex = clamp(index, 0, this.sceneCount - 1);
+    const targetProgress = clamp((this.sceneStarts[safeIndex] || 0) / this.totalDuration);
+    const top = this.startY + targetProgress * this.totalScroll + 1;
+
+    window.scrollTo({
+      top,
+      behavior:
+        behavior ||
+        (this.instance.mobileOptimizer.isReducedMotion ? "auto" : "smooth")
+    });
+  }
+
+  pause() {
+    this.isPaused = true;
+  }
+
+  resume() {
+    this.isPaused = false;
+    this.requestUpdate();
+  }
+}
+
+
+const VERSION = "0.1.0";
+
+const DEFAULT_OPTIONS = {
+  direction: "vertical",
+  heightPerScene: 120,
+  transition: "fade",
+  textEffect: "fade",
+  progressBar: true,
+  sceneNumber: true,
+  mobileOptimize: true,
+  reducedMotion: true,
+  autoPlayVideo: true,
+  autoPlayAudio: false,
+  loopVideo: true,
+  debug: false,
+  keyboard: false,
+  mobile: null,
+  scenes: []
+};
+
+function resolveTarget(selector) {
+  if (typeof selector === "string") {
+    return document.querySelector(selector);
+  }
+
+  if (selector instanceof HTMLElement) {
+    return selector;
+  }
+
+  return null;
+}
+
+function pad(number) {
+  return String(number).padStart(2, "0");
+}
+
+function mergeOptions(options) {
+  return {
+    ...DEFAULT_OPTIONS,
+    ...options,
+    mobile: {
+      ...(DEFAULT_OPTIONS.mobile || {}),
+      ...(options.mobile || {})
+    }
+  };
+}
+
+class SceneScrollInstance {
+  constructor(selector, options = {}) {
+    this.target = resolveTarget(selector);
+    if (!this.target) {
+      throw new Error("SceneScroll: Target element not found.");
+    }
+
+    this.options = mergeOptions(options);
+    if (!Array.isArray(this.options.scenes) || this.options.scenes.length === 0) {
+      throw new Error("SceneScroll: scenes array is required.");
+    }
+
+    this.originalHTML = this.target.innerHTML;
+    this.currentIndex = -1;
+    this.progress = 0;
+    this.sceneProgress = 0;
+    this.isDestroyed = false;
+    this.mobileOptimizer = new MobileOptimizer(this.options);
+
+    this.build();
+
+    this.mediaManager = new MediaManager(this);
+    this.scrollManager = new ScrollManager(this);
+    this.scrollManager.start();
+  }
+
+  build() {
+    this.target.innerHTML = "";
+    this.target.classList.add("ss-host");
+
+    this.wrapper = createElement("div", {
+      className: [
+        "ss-wrapper",
+        `ss-direction-${this.options.direction}`,
+        this.mobileOptimizer.isMobile ? "ss-mobile" : "",
+        this.mobileOptimizer.isReducedMotion ? "ss-reduced-motion" : ""
+      ]
+        .filter(Boolean)
+        .join(" "),
+      attrs: {
+        "data-scenes": this.options.scenes.length,
+        "data-current-scene": "0"
+      }
+    });
+
+    this.sticky = createElement("div", {
+      className: "ss-sticky"
+    });
+
+    this.track = null;
+    const sceneParent =
+      this.options.direction === "horizontal"
+        ? this.createHorizontalTrack()
+        : this.sticky;
+
+    this.scenes = this.options.scenes.map((scene, index) => {
+      const sceneInstance = new Scene(scene, index, this.options.scenes.length, this);
+      sceneParent.appendChild(sceneInstance.el);
+      return sceneInstance;
+    });
+
+    if (this.track) {
+      this.sticky.appendChild(this.track);
+    }
+
+    this.createControls();
+    this.wrapper.appendChild(this.sticky);
+    this.target.appendChild(this.wrapper);
+  }
+
+  createHorizontalTrack() {
+    this.track = createElement("div", {
+      className: "ss-horizontal-track"
+    });
+    return this.track;
+  }
+
+  createControls() {
+    if (this.options.progressBar) {
+      this.progressBar = createElement("div", {
+        className: "ss-progress",
+        attrs: {
+          "aria-hidden": "true"
+        },
+        children: [
+          createElement("div", {
+            className: "ss-progress-bar"
+          })
+        ]
+      });
+      this.sticky.appendChild(this.progressBar);
+    }
+
+    if (this.options.sceneNumber) {
+      this.currentNumber = createElement("span", {
+        className: "ss-current",
+        text: "01"
+      });
+      this.totalNumber = createElement("span", {
+        className: "ss-total",
+        text: pad(this.options.scenes.length)
+      });
+
+      this.sceneNumber = createElement("div", {
+        className: "ss-scene-number",
+        attrs: {
+          "aria-live": "polite"
+        },
+        children: [
+          this.currentNumber,
+          createElement("span", {
+            className: "ss-separator",
+            text: "/"
+          }),
+          this.totalNumber
+        ]
+      });
+      this.sticky.appendChild(this.sceneNumber);
+    }
+
+    if (this.options.debug) {
+      this.debugPanel = createElement("pre", {
+        className: "ss-debug",
+        attrs: {
+          "aria-hidden": "true"
+        }
+      });
+      this.sticky.appendChild(this.debugPanel);
+    }
+  }
+
+  update(state) {
+    if (this.isDestroyed) {
+      return;
+    }
+
+    const previousIndex = this.currentIndex;
+    this.progress = state.progress;
+    this.currentIndex = state.currentIndex;
+    this.sceneProgress = state.sceneProgress;
+
+    this.wrapper.style.setProperty("--ss-progress", state.progress.toFixed(4));
+    this.wrapper.style.setProperty("--ss-scene-progress", state.sceneProgress.toFixed(4));
+    this.wrapper.style.setProperty("--ss-current-scene", String(state.currentIndex));
+    this.wrapper.dataset.currentScene = String(state.currentIndex);
+
+    this.scenes.forEach((scene) => {
+      scene.setState(state.currentIndex);
+      scene.update(state.sceneProgress, state.currentIndex);
+    });
+
+    if (this.currentNumber) {
+      this.currentNumber.textContent = pad(state.currentIndex + 1);
+    }
+
+    if (this.debugPanel) {
+      this.debugPanel.textContent = JSON.stringify(
+        {
+          progress: Number(state.progress.toFixed(4)),
+          currentIndex: state.currentIndex,
+          sceneProgress: Number(state.sceneProgress.toFixed(4)),
+          mobile: this.mobileOptimizer.isMobile,
+          reducedMotion: this.mobileOptimizer.isReducedMotion
+        },
+        null,
+        2
+      );
+    }
+
+    if (previousIndex !== state.currentIndex) {
+      this.mediaManager.sync(state.currentIndex);
+      if (typeof this.options.onSceneChange === "function") {
+        this.options.onSceneChange({
+          index: state.currentIndex,
+          scene: this.options.scenes[state.currentIndex],
+          progress: state.progress
+        });
+      }
+    }
+  }
+
+  next() {
+    this.goTo(this.currentIndex + 1);
+  }
+
+  prev() {
+    this.goTo(this.currentIndex - 1);
+  }
+
+  goTo(index) {
+    const safeIndex = Math.round(clamp(index, 0, this.scenes.length - 1));
+    this.scrollManager.scrollToIndex(safeIndex);
+  }
+
+  refresh() {
+    this.mobileOptimizer.refresh();
+    this.wrapper.classList.toggle("ss-mobile", this.mobileOptimizer.isMobile);
+    this.wrapper.classList.toggle("ss-reduced-motion", this.mobileOptimizer.isReducedMotion);
+    this.scenes.forEach((scene) => scene.refreshClasses());
+    this.scrollManager.refresh();
+    this.scrollManager.requestUpdate();
+  }
+
+  pause() {
+    this.scrollManager.pause();
+  }
+
+  resume() {
+    this.scrollManager.resume();
+  }
+
+  destroy() {
+    if (this.isDestroyed) {
+      return;
+    }
+
+    this.isDestroyed = true;
+    this.scrollManager.stop();
+    this.mediaManager.destroy();
+    this.target.classList.remove("ss-host");
+    this.target.innerHTML = this.originalHTML;
+  }
+}
+
+function create(selector, options) {
+  return new SceneScrollInstance(selector, options);
+}
+
+const SceneScroll = {
+  create,
+  version: VERSION,
+  defaults: DEFAULT_OPTIONS,
+  Instance: SceneScrollInstance
+};
+
+
+
+  global.SceneScroll = SceneScroll;
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = SceneScroll;
+  }
+})(typeof window !== "undefined" ? window : globalThis);

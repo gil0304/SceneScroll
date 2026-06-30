@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SceneScroll.js Demo - Travel</title>
+    <link rel="stylesheet" href="../../dist/scenescroll.css">
+    <style>
+      body { margin: 0; background: #0b1720; }
+      .demo-nav {
+        position: fixed;
+        top: 18px;
+        left: 20px;
+        z-index: 40;
+        font: 700 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        letter-spacing: 0;
+      }
+      .demo-nav a { color: #fff; text-decoration: none; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.7); }
+      .demo-nav a:hover { text-decoration: underline; }
+      #scene { --ss-progress-color: #fef08a; --ss-overlay-color: rgba(0, 0, 0, 0.24); }
+    </style>
+  </head>
+  <body>
+    <nav class="demo-nav" aria-label="Back"><a href="../../">SceneScroll.js</a></nav>
+    <main id="scene"></main>
+    <script src="../../dist/scenescroll.js"></script>
+    <script>
+      SceneScroll.create("#scene", {
+        direction: "horizontal",
+        heightPerScene: 112,
+        transition: "slide",
+        textEffect: "fade",
+        progressBar: true,
+        sceneNumber: true,
+        keyboard: true,
+        autoPlayAudio: true,
+        mobile: {
+          disableVideo: true,
+          reduceParallax: true,
+          transition: "fade",
+          textEffect: "fade"
+        },
+        scenes: [
+          {
+            label: "Departure",
+            title: "Platform light",
+            text: "朝の駅で、旅の輪郭だけが先に動き出す。",
+            background: "../../assets/images/travel-departure.svg",
+            backgroundAlt: "朝の駅",
+            transition: "slide",
+            align: "left"
+          },
+          {
+            label: "Sea",
+            title: "The coast opens",
+            text: "窓の外が青に変わると、言葉の速度もゆっくりになる。",
+            background: "../../assets/images/travel-coast.svg",
+            backgroundAlt: "海岸",
+            transition: "parallax",
+            parallax: {
+              backgroundSpeed: 0.25,
+              contentSpeed: 0.8
+            }
+          },
+          {
+            label: "City",
+            title: "Evening streets",
+            text: "知らない街の灯りは、地図より先に進む方向を決めてしまう。",
+            background: "../../assets/images/travel-city.svg",
+            backgroundAlt: "夕方の街",
+            transition: "camera",
+            camera: {
+              from: { scale: 1.04, x: -80, y: 0 },
+              to: { scale: 1.22, x: 90, y: 24 }
+            },
+            align: "right"
+          },
+          {
+            label: "Night",
+            title: "A quiet return",
+            text: "夜の水面に、今日歩いた距離が少しだけ残る。",
+            background: "../../assets/images/travel-night.svg",
+            backgroundAlt: "夜の水辺",
+            transition: "fade",
+            audio: {
+              src: "../../assets/audio/ambient-tone.mp3",
+              loop: true,
+              volume: 0.28,
+              fade: true
+            }
+          },
+          {
+            label: "Back",
+            title: "The road keeps a trace",
+            text: "帰り道になって初めて、旅は一つの物語に見える。",
+            background: "../../assets/images/story-ending.svg",
+            backgroundAlt: "朝焼けの道",
+            transition: "zoom",
+            textEffect: "slide"
+          }
+        ]
+      });
+    </script>
+  </body>
+</html>

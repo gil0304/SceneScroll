@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="travel-night">
+  <defs>
+    <linearGradient id="sky-travel-night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020617"/>
+      <stop offset="0.54" stop-color="#172554"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <radialGradient id="glow-travel-night" cx="50%" cy="38%" r="48%">
+      <stop offset="0" stop-color="#a5b4fc" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#a5b4fc" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft-travel-night" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky-travel-night)"/>
+  <rect width="1600" height="900" fill="url(#glow-travel-night)"/>
+  
+  <circle cx="1190" cy="180" r="72" fill="#e0e7ff" opacity="0.86"/>
+  <path d="M0 640 C240 590 380 665 590 620 C850 565 1010 660 1600 610 L1600 900 L0 900 Z" fill="#0f172a"/>
+  <path d="M0 760 C260 715 520 790 800 745 C1060 700 1260 762 1600 720 L1600 900 L0 900 Z" fill="#111827"/>
+  <g fill="#fef3c7" opacity="0.8"><circle cx="310" cy="180" r="5"/><circle cx="540" cy="120" r="4"/><circle cx="820" cy="220" r="5"/><circle cx="1370" cy="285" r="4"/></g>
+</svg>

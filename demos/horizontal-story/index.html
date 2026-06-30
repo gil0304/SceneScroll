@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SceneScroll.js Demo - Horizontal Story</title>
+    <link rel="stylesheet" href="../../dist/scenescroll.css">
+    <style>
+      body { margin: 0; background: #0f2418; }
+      .demo-nav {
+        position: fixed;
+        top: 18px;
+        left: 20px;
+        z-index: 40;
+        font: 700 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        letter-spacing: 0;
+      }
+      .demo-nav a { color: #fff; text-decoration: none; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.7); }
+      .demo-nav a:hover { text-decoration: underline; }
+      #scene { --ss-progress-color: #d9f99d; --ss-overlay-color: rgba(0, 0, 0, 0.28); }
+    </style>
+  </head>
+  <body>
+    <nav class="demo-nav" aria-label="Back"><a href="../../">SceneScroll.js</a></nav>
+    <main id="scene"></main>
+    <script src="../../dist/scenescroll.js"></script>
+    <script>
+      SceneScroll.create("#scene", {
+        direction: "horizontal",
+        heightPerScene: 108,
+        transition: "slide",
+        textEffect: "type",
+        progressBar: true,
+        sceneNumber: true,
+        keyboard: true,
+        scenes: [
+          {
+            label: "Page 01",
+            title: "The book opens",
+            text: "小さな本が、森の入口で静かに開いた。",
+            background: "../../assets/images/story-cover.svg",
+            backgroundAlt: "森と開いた本",
+            align: "left"
+          },
+          {
+            label: "Page 02",
+            title: "Into the trees",
+            text: "道は細く、けれど光は遠くまで続いていた。",
+            background: "../../assets/images/story-path.svg",
+            backgroundAlt: "森の道"
+          },
+          {
+            label: "Page 03",
+            title: "Lost",
+            text: "振り返るたび、さっきの道は少しずつ違って見えた。",
+            background: "../../assets/images/story-lost.svg",
+            backgroundAlt: "暗い森",
+            transition: "fade",
+            textEffect: "blur"
+          },
+          {
+            label: "Page 04",
+            title: "A small light",
+            text: "迷った先で、名前のない光がこちらを待っていた。",
+            background: "../../assets/images/story-light.svg",
+            backgroundAlt: "森の中の光",
+            transition: "camera",
+            textEffect: "type",
+            camera: {
+              from: { scale: 1, x: 0, y: 0 },
+              to: { scale: 1.26, x: -70, y: 25 }
+            }
+          },
+          {
+            label: "Page 05",
+            title: "The exit",
+            text: "出口は扉ではなく、朝の色をした広い場所だった。",
+            background: "../../assets/images/story-exit.svg",
+            backgroundAlt: "森の出口",
+            transition: "slide",
+            align: "right"
+          },
+          {
+            label: "Page 06",
+            title: "The last page",
+            text: "本を閉じても、森の匂いだけは手のひらに残った。",
+            background: "../../assets/images/story-ending.svg",
+            backgroundAlt: "朝焼けの丘",
+            transition: "fade",
+            textEffect: "slide"
+          }
+        ]
+      });
+    </script>
+  </body>
+</html>

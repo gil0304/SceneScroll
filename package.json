@@ -1,0 +1,61 @@
+{
+  "name": "scenescroll",
+  "version": "0.1.0",
+  "description": "Scroll-based Cinematic Web Library.",
+  "type": "module",
+  "main": "dist/scenescroll.cjs",
+  "module": "src/index.js",
+  "types": "dist/scenescroll.d.ts",
+  "style": "dist/scenescroll.css",
+  "browser": "dist/scenescroll.js",
+  "unpkg": "dist/scenescroll.min.js",
+  "jsdelivr": "dist/scenescroll.min.js",
+  "exports": {
+    ".": {
+      "types": "./dist/scenescroll.d.ts",
+      "import": "./src/index.js",
+      "require": "./dist/scenescroll.cjs",
+      "browser": "./dist/scenescroll.js",
+      "default": "./src/index.js"
+    },
+    "./css": "./dist/scenescroll.css",
+    "./dist/scenescroll.css": "./dist/scenescroll.css",
+    "./dist/scenescroll.cjs": "./dist/scenescroll.cjs",
+    "./dist/scenescroll.js": "./dist/scenescroll.js",
+    "./dist/scenescroll.min.js": "./dist/scenescroll.min.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "demos",
+    "assets",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node --check dist/scenescroll.js && node --check dist/scenescroll.cjs && node --check dist/scenescroll.min.js && node --check scripts/build.mjs && node --check scripts/generate-assets.mjs && node --check scripts/smoke-test.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
+    "prepack": "npm run build && npm run check",
+    "serve": "python3 -m http.server 4173"
+  },
+  "keywords": [
+    "scroll",
+    "cinematic",
+    "animation",
+    "landing-page",
+    "vanilla-js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gil0304/SceneScroll.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gil0304/SceneScroll/issues"
+  },
+  "homepage": "https://github.com/gil0304/SceneScroll#readme",
+  "sideEffects": [
+    "dist/scenescroll.css",
+    "src/styles/scenescroll.css"
+  ],
+  "license": "MIT"
+}

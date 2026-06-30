@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="portfolio-code">
+  <defs>
+    <linearGradient id="sky-portfolio-code" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#09111f"/>
+      <stop offset="0.54" stop-color="#103f55"/>
+      <stop offset="1" stop-color="#10291f"/>
+    </linearGradient>
+    <radialGradient id="glow-portfolio-code" cx="50%" cy="38%" r="48%">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#67e8f9" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft-portfolio-code" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky-portfolio-code)"/>
+  <rect width="1600" height="900" fill="url(#glow-portfolio-code)"/>
+  
+  <rect x="250" y="165" width="1100" height="570" rx="18" fill="#020617" opacity="0.9"/>
+  <rect x="250" y="165" width="1100" height="58" rx="18" fill="#1e293b"/>
+  <circle cx="304" cy="194" r="10" fill="#fb7185"/><circle cx="338" cy="194" r="10" fill="#fbbf24"/><circle cx="372" cy="194" r="10" fill="#34d399"/>
+  <g stroke-linecap="round" stroke-width="16">
+    <path d="M360 310 H610" stroke="#93c5fd"/><path d="M410 370 H820" stroke="#a7f3d0"/>
+    <path d="M410 430 H700" stroke="#fde68a"/><path d="M470 490 H1040" stroke="#f0abfc"/>
+    <path d="M410 550 H760" stroke="#a7f3d0"/><path d="M360 610 H960" stroke="#93c5fd"/>
+  </g>
+</svg>
