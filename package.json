@@ -36,7 +36,7 @@
     "check": "node --check dist/scenescroll.js && node --check dist/scenescroll.cjs && node --check dist/scenescroll.min.js && node --check scripts/build.mjs && node --check scripts/generate-assets.mjs && node --check scripts/smoke-test.mjs",
     "smoke": "node scripts/smoke-test.mjs",
     "prepack": "npm run build && npm run check",
-    "serve": "python3 -m http.server 4173"
+    "serve": "http-server . -p 4173 -c-1"
   },
   "keywords": [
     "scroll",
@@ -57,5 +57,8 @@
     "dist/scenescroll.css",
     "src/styles/scenescroll.css"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
 }
