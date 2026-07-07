@@ -925,9 +925,7 @@ class SceneScrollInstance {
 
     this.track = null;
     const sceneParent =
-      this.options.direction === "horizontal"
-        ? this.createHorizontalTrack()
-        : this.sticky;
+      this.options.direction === "horizontal" ? this.createHorizontalTrack() : this.sticky;
 
     this.scenes = this.options.scenes.map((scene, index) => {
       const sceneInstance = new Scene(scene, index, this.options.scenes.length, this);
@@ -1020,9 +1018,14 @@ class SceneScrollInstance {
     this.wrapper.style.setProperty("--ss-current-scene", String(state.currentIndex));
     this.wrapper.dataset.currentScene = String(state.currentIndex);
 
+    const indexChanged = previousIndex !== state.currentIndex;
     this.scenes.forEach((scene) => {
-      scene.setState(state.currentIndex);
-      scene.update(state.sceneProgress, state.currentIndex);
+      if (indexChanged) {
+        scene.setState(state.currentIndex);
+        scene.update(state.sceneProgress, state.currentIndex);
+      } else if (scene.index === state.currentIndex) {
+        scene.update(state.sceneProgress, state.currentIndex);
+      }
     });
 
     if (this.currentNumber) {
